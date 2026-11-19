@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>My Clock</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+@font-face{font-family:"Mamamia";src:url(mamamia.ttf) format("truetype")}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#fff;font-family:"Mamamia",cursive;color:#000}
+#stage{position:absolute;left:50%;top:50%;width:1440px;height:810px;transform-origin:0 0;overflow:hidden;background:#fff}
+#stage img{display:block;user-select:none;-webkit-user-drag:none}
+.abs{position:absolute}
+#bg{left:0;top:0;width:1440px;height:810px}
+.hand{position:absolute;will-change:transform;pointer-events:none}
+.num{position:absolute;font-size:80px;line-height:1;color:#000;transform:translate(-50%,-50%);will-change:transform;cursor:pointer;user-select:none}
+#digits{left:763px;top:92px;font-size:120px;line-height:1;color:#e26fa8;white-space:nowrap}
+#nav{left:1153px;top:88px;font-size:18px;color:#000;line-height:1}
+#nav div{height:43.2px;transform-origin:0 50%;transition:transform .25s ease;cursor:pointer;white-space:nowrap}
+#nav div:hover{transform:scale(1.14)}
+#nav .cur{color:#a60897}
+#range{left:872px;top:236px;font-size:40px;line-height:1;color:#e26fa8;letter-spacing:.02em}
+#body{left:720px;top:361px;width:670px;font-size:27px;line-height:32.4px}
+#ctl{opacity:0;pointer-events:none;transition:opacity .3s ease}
+#ctl.on{opacity:1}
+#ctl .ctl{pointer-events:none}
+#ctl.on .ctl{pointer-events:auto}
+.ctl{position:absolute;top:704px;font-family:"Mamamia",cursive;font-size:24px;color:#000;background:none;border:0;cursor:pointer;display:flex;align-items:center;gap:10px;padding:4px 2px}
+.ctl:hover span{text-decoration:underline;text-underline-offset:4px}
+.ctl svg{width:22px;height:22px;stroke:#000;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+#bBack{left:720px}#bPrev{left:850px}#bNext{left:1000px}
+#pagename{left:1205px;top:676px;font-size:48px;color:#333e87;white-space:nowrap}
+</style></head><body>
+<div id="stage">
+ <img id="bg" class="abs" src="hand_bg.webp" alt="">
+ <img id="hShort" class="hand" src="h_short.png" alt="">
+ <img id="hLong" class="hand" src="h_long.png" alt="">
+ <img id="hHub" class="hand" src="h_hub.png" alt="">
+ <div id="nums"></div>
+ <div id="digits" class="abs">00:00</div>
+ <div id="nav" class="abs">
+  <div id="nAt">-The Anticipated Clock: 00:00</div>
+  <div id="nMy" class="cur">-My Clock: 04:33</div>
+  <div id="nYourLink">-Your Clock: 00:00</div>
+ </div>
+ <div id="range" class="abs"></div>
+ <div id="body" class="abs"></div>
+ <div id="ctl" class="abs" style="left:0;top:0;width:1440px;height:810px">
+  <button id="bBack" class="ctl"><svg viewBox="0 0 24 24"><path d="M20 12H5M11 5l-7 7 7 7"/></svg><span>Back</span></button>
+  <button id="bPrev" class="ctl"><svg viewBox="0 0 24 24"><path d="M12 20V5M5 11l7-7 7 7"/></svg><span></span></button>
+  <button id="bNext" class="ctl"><svg viewBox="0 0 24 24"><path d="M12 4v15M5 13l7 7 7-7"/></svg><span></span></button>
+ </div>
+ <div id="pagename" class="abs">My Clock</div>
+</div>
+<script src="sound.js"></script>
+<script>
+const LAYOUT={"hub": [311.47598253275106, 418.3755458515284], "R": 290.51528384279476}, TX={"intro": "I’m nineteen, and in my life clock I am living through the early morning of 4:33. At every hour, I have hopes of my own, and dreams that belong only to me. I have only walked through a few short hours of this day, and more than half of the journey is still waiting for me. I look forward to the future, and I love the life I have now with everything I have. Click on a number, and I’ll tell you about it.", "marks": {"1": "When I was four or five, I fell in love with drawing. I scribbled in every corner of the house, and when I drew on the wall, Mum would tap my hand and scold me. Then she would go out and buy me a whole new set of pens. I also had a pillow almost as tall as I was, and it smelled like her. I took it everywhere. When I felt unsure of things, I held it close and breathed in. Back then, I looked up at the world, curious, and sure that it meant me no harm.", "2": "At sixteen, I left home to study in Beijing. I missed home so much that I flew back every weekend. Somewhere in those trips, I understood what people meant when they said that after high school, you spend less and less time at home. I was only in my first year, and already I saw my hometown in short visits, one season at a time. But I had made up my mind to study art abroad, and I worked on my portfolio without letting up. To the girl I was then: I know every bit of effort you put in.", "3": "I’m nineteen, and this is the part of the clock I’m standing in. Over the last year or two, I went into a relationship and struggled my way out of it. For a long time I was sad about it more often than I could count. I felt lost, and sometimes I stood still. But I never stopped wanting to get better. When I finally came out the other side, my ideas about love and friendship felt more complete than before. I don’t want a calm, steady life right now. I want to go after the work, the people and the studies I choose, with everything I have.", "4": "At twenty-eight, I might still be abroad, in England or America. Maybe I’ll be an art therapist with a clinic of my own, working hard every day for something I started myself. I hope I’ll have a group of friends, so that when work ends I’m not alone. And if I’m lucky, there will be someone at home who loves me, waiting. If you ask what I most want to hold on to, it’s my career. What I least want to lose is my family. However far I go, I want that thread between us to stay.", "5": "By thirty-eight, I hope I’m still brave, and still feel as alive as I do now. I hope I’m still curious about a street I’ve never walked down. There’s one thing I’d like to put down by then: the need to make everything turn out the way I planned. I have held on to many things so tightly, and I want to learn that something can slip away, and I can still be fine.", "6": "At forty-five, I hope my days are slower. I’ve always been someone who can’t stop, so stillness is something I’ll still be learning. I’d like to become a woman who has gone after what she wanted and gotten much of it, and now is happy to sit down quietly in the middle of ordinary life. Someone who is fully in the world, and still has time to enjoy it.", "7": "At fifty-five, I don’t need to leave anything behind for the people around me. I just want to have lived my own life well, and gone after the things I wanted. If something is still out of reach, I hope I can stop holding on so hard. I’ll go to quiet, natural places, among trees and water, and look for my own meaning there. I hope I still exercise, still keep myself healthy, and meet whatever comes with a good heart.", "8": "At sixty-two, I’m at home with my family. I look at the view from the window, make things with my hands, and when it’s time to eat, warm food is put on the table, and it tastes like something I know. I believe people need to be connected to others. My family and friends are about half of my reasons for facing the world, so I hope they’re still close by.", "9": "At seventy, I hope I’m still drawing. It’s the first thing I loved with certainty, when I was four or five. Whether it ever becomes my job or not, I want it to stay with me for life. I’m not afraid of getting old. Birth, ageing, illness, death, and then something new. I’ve felt what being young is like, and I’m curious about the other end of it: what my thoughts and my heart will look like when I get there.", "10": "At eighty, I can’t quite picture my days, and that’s alright. Maybe I’ll be in a care home, living a steady, almost boring life, and still looking for what my life means. Maybe there will be friends, children or a pet beside me. Any of them would do. My body will have grown old, but I hope my mind hasn’t. I hope I still meet the world with a young heart.", "11": "At eighty-eight, when I look back, the person I’ll thank most is myself, the one who kept trying to become better. I worked toward what I wanted, and I gave this one and only life the best I could. If someone tells my story, I hope they say: she lived without regrets.", "12": "At ninety-six, I hope there is warm, gentle sunlight. I hope I’m still smiling at whatever fate has given me. If I could leave you one sentence, it would be: work hard for your own life."}};
+const stage=document.getElementById('stage');
+let SC=1;
+function fit(){SC=Math.min(innerWidth/1440,innerHeight/810);stage.style.transform=`translate(${-720*SC}px,${-405*SC}px) scale(${SC})`}
+addEventListener('resize',fit);fit();
+const HUB=LAYOUT.hub, HR=LAYOUT.R;
+const hLong=document.getElementById('hLong'), hShort=document.getElementById('hShort'), hHub=document.getElementById('hHub');
+for(const h of [hLong,hShort,hHub]){h.style.left=(HUB[0]-HR)+'px';h.style.top=(HUB[1]-HR)+'px';h.style.width=h.style.height=(2*HR)+'px'}
+const AGE=19, ME_ANG=AGE/100*360;
+hShort.style.transform=`rotate(${ME_ANG-180}deg)`;   // short hand rests at age 19
+const pad=n=>String(n).padStart(2,'0');
+const hhmm=m=>pad(Math.floor(m/60))+':'+pad(Math.floor(m%60));
+const MYTIME=hhmm(AGE/100*1440);
+document.getElementById('nMy').textContent='-My Clock: '+MYTIME;
+
+/* shared clock: the Anticipated Clock keeps running across pages */
+let T0=null;try{T0=Number(sessionStorage.getItem('lc_t0'))||null}catch(e){}
+if(!T0){T0=Date.now();try{sessionStorage.setItem('lc_t0',String(T0))}catch(e){}}
+const tickNow=()=>Math.floor((Date.now()-T0)/1000);
+
+/* numbers on an ellipse around the hub */
+const RX=262, RY=305;
+const numsEl=document.getElementById('nums'), nums=[];
+for(let n=1;n<=12;n++){
+  const th=n*30*Math.PI/180;
+  const x=HUB[0]+RX*Math.sin(th), y=HUB[1]-RY*Math.cos(th);
+  const el=document.createElement('div');el.className='num';el.textContent=n;
+  el.style.left=x+'px';el.style.top=y+'px';numsEl.appendChild(el);
+  const ang=(Math.atan2(x-HUB[0],-(y-HUB[1]))*180/Math.PI+360)%360;
+  nums.push({n,el,x,y,ang,s:1,v:0});
+}
+const RANGE=n=>{const a=Math.round((n-1)*100/12),b=Math.round(n*100/12);return a+' – '+b};
+const bodyEl=document.getElementById('body'), rangeEl=document.getElementById('range');
+const digits=document.getElementById('digits');digits.textContent=MYTIME;
+
+let px=-999,py=-999,hover=0,active=0;
+addEventListener('pointermove',e=>{const r=stage.getBoundingClientRect();px=(e.clientX-r.left)/SC;py=(e.clientY-r.top)/SC});
+function place(isIntro){
+  if(isIntro){bodyEl.style.top='361px';return}
+  bodyEl.style.top='300px';const h=bodyEl.offsetHeight;
+  const line=(338.9+22+h<=662)?338.9:274.6;   // age label sits on a ruled line; the body follows below it
+  bodyEl.style.top=Math.round(line+22)+'px';rangeEl.style.top=Math.round(line-44)+'px';
+}
+function swapText(html,range){
+  const els=[bodyEl,rangeEl];
+  els.forEach(el=>el.animate([{opacity:1},{opacity:0}],{duration:160,fill:'forwards'}));
+  setTimeout(()=>{bodyEl.textContent=html;rangeEl.textContent=range||'';place(!range);
+    els.forEach(el=>el.animate([{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'none'}],{duration:420,easing:'ease-out',fill:'forwards'}))},170);
+}
+bodyEl.textContent=TX.intro;
+const ctl=document.getElementById('ctl'),bPrev=document.getElementById('bPrev'),bNext=document.getElementById('bNext'),bBack=document.getElementById('bBack');
+function updCtl(){
+  ctl.classList.toggle('on',active>0);
+  bPrev.style.display=active>1?'flex':'none';bNext.style.display=active<12?'flex':'none';
+  if(active>1)bPrev.querySelector('span').textContent='Prev \u00b7 '+(active-1);
+  if(active<12)bNext.querySelector('span').textContent='Next \u00b7 '+(active+1);
+}
+let lastTickS=-1;
+function setActive(n,via){
+  if(window.LCSound&&n!==active){via==='key'?LCSound.key():LCSound.page()}
+  active=n;updCtl();
+  if(n===0)swapText(TX.intro,'');
+  else swapText(TX.marks[String(n)],RANGE(n));
+}
+stage.addEventListener('click',e=>{
+  if(e.target.closest('#nav')||e.target.closest('.ctl'))return;
+  if(hover>0){ setActive(active===hover?0:hover) }
+  else if(active>0) setActive(0);
+});
+bBack.addEventListener('click',()=>setActive(0,'key'));
+bPrev.addEventListener('click',()=>{if(active>1)setActive(active-1,'key')});
+bNext.addEventListener('click',()=>{if(active<12)setActive(active+1,'key')});
+addEventListener('keydown',e=>{
+  if(e.key==='Escape'){if(active>0)setActive(0,'key')}
+  else if(e.key==='ArrowDown'||e.key==='ArrowRight'){if(active<12)setActive(active+1,'key')}
+  else if(e.key==='ArrowUp'||e.key==='ArrowLeft'){if(active>1)setActive(active-1,'key');else if(active===1)setActive(0,'key')}
+});
+/* nav */
+document.getElementById('nAt').addEventListener('click',()=>{location.href='index.html'});
+(function(){var el=document.getElementById('nYourLink');if(!el)return;
+ el.style.cursor='pointer';
+ var p=function(n){return String(n).padStart(2,'0')};
+ function upd(){var t=Math.floor((Date.now()-T0)/1000),m=(t%120)*12;el.textContent='-Your Clock: '+p(Math.floor(m/60))+':'+p(Math.floor(m%60))}
+ upd();setInterval(upd,200);
+ el.addEventListener('click',function(){location.href='your-clock.html'});
+})();
+
+
+let cur=0, started=false, mouseAng=0;
+addEventListener('pointermove',e=>{const r=stage.getBoundingClientRect();const x=(e.clientX-r.left)/SC,y=(e.clientY-r.top)/SC;mouseAng=(Math.atan2(x-HUB[0],-(y-HUB[1]))*180/Math.PI+360)%360});
+function frame(){
+  const tick=tickNow();
+  if(tick!==lastTickS){lastTickS=tick;if(window.LCSound)LCSound.tick(tick)}
+  let best=0,bd=1e9;
+  for(const o of nums){const d=Math.hypot(px-o.x,py-o.y);if(d<52&&d<bd){bd=d;best=o.n}}
+  hover=best;
+  if(!started){cur=0;mouseAng=0;started=true}
+  const tgt=hover?nums[hover-1].ang:mouseAng;
+  let d=((tgt-cur+540)%360)-180;cur=(cur+d*(hover?0.28:0.16)+360)%360;
+  hLong.style.transform=`rotate(${cur.toFixed(2)}deg)`;
+  document.getElementById('nAt').textContent='-The Anticipated Clock: '+hhmm((tick%120)*12);
+  for(const o of nums){
+    const t=(o.n===hover)?1.75:(o.n===active?1.4:1);
+    o.v+=(t-o.s)*0.09;o.v*=0.78;o.s+=o.v;
+    o.el.style.transform=`translate(-50%,-50%) scale(${o.s.toFixed(3)})`;
+    o.el.style.zIndex=o.n===hover?5:(o.n===active?4:1);
+  }
+  stage.style.cursor=hover?'pointer':'default';
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+document.fonts.ready.then(()=>{[bodyEl,digits].forEach(el=>el.animate([{opacity:0,transform:'translateY(14px)'},{opacity:1,transform:'none'}],{duration:700,easing:'ease-out',fill:'backwards'}))});
+</script></body></html>

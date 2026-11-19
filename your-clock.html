@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Your Clock</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+@font-face{font-family:"Mamamia";src:url(mamamia.ttf) format("truetype")}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#fff;font-family:"Mamamia",cursive;color:#000}
+#stage{position:absolute;left:50%;top:50%;width:1440px;height:810px;transform-origin:0 0;overflow:hidden;background:#fff}
+#stage img{display:block;user-select:none;-webkit-user-drag:none}
+.abs{position:absolute}
+#bg{left:0;top:0;width:1440px;height:810px}
+#hands{position:absolute;left:0;top:0;width:1440px;height:810px;pointer-events:none}
+#digits{left:20px;top:22px;font-size:120px;line-height:1;color:#ce9f63;white-space:nowrap}
+#nav{left:1153px;top:88px;font-size:18px;color:#000;line-height:1}
+#nav div{height:43.2px;transform-origin:0 50%;transition:transform .25s ease;cursor:pointer;white-space:nowrap}
+#nav div:hover{transform:scale(1.14)}
+#nav .cur{color:#ce9f63}
+#q{left:408px;width:678px;top:100px;text-align:center;font-size:75px;line-height:1;color:#000;white-space:nowrap}
+#age{position:absolute;left:610px;top:206px;width:297px;height:84px;border:0;outline:0;background:transparent;text-align:center;font-family:"Mamamia",cursive;font-size:75px;line-height:84px;color:#000;caret-color:#000}
+#line{left:610px;top:294px;width:297px;height:2px;background:#000}
+#tip{left:930px;top:262px;width:210px;font-size:20px;line-height:24px;color:#000}
+#err{left:560px;top:312px;width:397px;text-align:center;font-size:22px;line-height:1;color:#000;opacity:0}
+#period{left:620px;top:418px;font-size:48px;line-height:1;color:#b09aac;white-space:nowrap;opacity:0}
+#body{left:620px;top:508px;width:590px;font-size:27px;line-height:32.4px;color:#000;opacity:0}
+#pagename{left:1195px;top:664px;font-size:48px;color:#b3ce55;white-space:nowrap}
+</style></head><body>
+<div id="stage">
+ <img id="bg" class="abs" src="ben_bg.webp" alt="">
+ <svg id="hands" viewBox="0 0 1440 810">
+  <g id="gShort" transform="translate(348.6 527)"><g id="rShort"><path d="M0,-37 C5,-27 6,-12 3.2,5 L-3.2,5 C-6,-12 -5,-27 0,-37Z" fill="#111"/></g></g>
+  <g id="gLong" transform="translate(348.6 527)"><g id="rLong"><path d="M0,-55 C3.4,-40 4,-16 2.2,7 L-2.2,7 C-4,-16 -3.4,-40 0,-55Z" fill="#111"/></g></g>
+  <circle cx="348.6" cy="527" r="4.2" fill="#111"/>
+ </svg>
+ <div id="digits" class="abs">00:00</div>
+ <div id="nav" class="abs">
+  <div id="nAt">-The Anticipated Clock: 00:00</div>
+  <div id="nMy">-My Clock: 04:33</div>
+  <div id="nYour" class="cur">-Your Clock: 00:00</div>
+ </div>
+ <div id="q" class="abs">What is your age now?</div>
+ <input id="age" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" maxlength="6" aria-label="Your age">
+ <div id="line" class="abs"></div>
+ <div id="tip" class="abs">You can type your age here, then press Enter.</div>
+ <div id="err" class="abs"></div>
+ <div id="period" class="abs"></div>
+ <div id="body" class="abs"></div>
+ <div id="pagename" class="abs">Your Clock</div>
+</div>
+<script src="sound.js"></script>
+<script>
+const BANDS=[{"a": 0, "b": 6, "p": "deep night", "n": 1, "s": ["At {age}, the day hasn't even begun, and you are the reason it will. Grow slowly; the road ahead will wait for you."]}, {"a": 6, "b": 12, "p": "small hours", "n": 1, "s": ["At {age}, the sky is only just beginning to be imagined. A whole day of journey lies ahead, and every question you ask is a first step."]}, {"a": 12, "b": 16, "p": "dark before dawn", "n": 3, "s": ["At {age}, it is still before dawn. The journey ahead is unknown, and that is what makes it worth taking. You are allowed to set out slowly.", "At {age}, a whole day is waiting beyond the dark. What it holds has not been decided by anyone, least of all by who you were yesterday.", "At {age}, the hardest part of the night is nearly over. The scenery you will see tomorrow is waiting for you to walk toward it."]}, {"a": 16, "b": 19, "p": "first grey light", "n": 5, "s": ["At {age}, it is only just getting light. You are at the very start of a long journey, and no one yet knows what you will see. Keep going.", "At {age}, the day hasn't decided what it will be. The most beautiful views are rarely close by; they belong to the ones who keep climbing.", "At {age}, there is so much road ahead and so little of it mapped. Be brave enough to be a beginner, and curious enough to keep walking.", "At {age}, you are standing at the start of a day full of possibility. Whatever you want to see, it will take your effort to reach, and it will be worth it.", "At {age}, the sun in your life isn't up yet, but you are already on your way. Every day from here on is a journey you have never lived before. Meet your good life with all your vitality."]}, {"a": 19, "b": 22, "p": "daybreak", "n": 5, "s": ["At {age}, the sky is just opening. The whole journey lies ahead, and the views you dream of are waiting for those who work for them.", "At {age}, a new day is breaking in your life, and you are right at the beginning. Don't worry about the weather. If it's sunny, go fly a kite; if it rains, take an umbrella and go anyway.", "At {age}, daybreak is when the world looks most possible. Chase what you love with everything you have; life rewards those who keep moving.", "At {age}, the morning is still unwritten. You don't have to know the destination yet. You only have to keep stepping toward what lights you up.", "At {age}, the first light of your life is on your face. A long day full of wonder is ahead, and every beautiful place on it needs you to arrive on your own feet."]}, {"a": 22, "b": 25, "p": "sunrise", "n": 5, "s": ["At {age}, the sun is rising on your life. Everything you do now is the first brushstroke of a very long, very bright day.", "At {age}, this is the first sunlight of your life. Beautiful scenery doesn't come to those who wait; it opens for those who keep going.", "At {age}, the day of your life has just begun to show its colours. Keep exploring with energy; there are so many journeys still worth starting.", "At {age}, it's only the sunrise of your life, and the best hours are still ahead of you. Chase what you want, and it's fine to make mistakes, as long as your eyes stay on the road.", "At {age}, what you are living through is only the sunrise of your life. You don't need all the answers, just the courage to keep walking."]}, {"a": 25, "b": 28, "p": "fresh morning", "n": 5, "s": ["At {age}, it is the fresh morning of your life, and your journey is well begun. Keep walking; the views waiting for you were made for people who don't stop.", "At {age}, the day of your life is still young and the road is long. Whatever you are building, there is time to build it well.", "At {age}, the morning light of your life is clear. You have learned what you love; now go and work for it. The view from the top is worth the climb.", "At {age}, it is the fresh morning of your life. Everything carries the clean feeling of morning air. Start from here, and go anywhere.", "At {age}, the day of your life is full of promise. Not everything will go the way you plan, but the scenery you find along the way will be yours alone."]}, {"a": 28, "b": 31, "p": "early morning", "n": 5, "s": ["At {age}, it is the early morning of your life, and the day is still yours to shape. Keep chasing what matters; the brightest hours are still ahead.", "At {age}, you may feel you've already come a long way, but in a long life the day has only just begun. Keep going, and let the road surprise you.", "At {age}, the morning of your life is bright, and you are in the middle of your beginning. Don't hurry. Every good view takes its own time to appear.", "At {age}, the sun in your life is climbing, and so are you. Keep faith with what you started; the next stretch of road will be even brighter.", "At {age}, you are still at the start of the day of your life. There is so much left to see, and every bit of it is worth your effort."]}, {"a": 31, "b": 35, "p": "morning", "n": 3, "s": ["At {age}, it is the morning of your life, and the day is wide open. Keep walking toward what you love; the best scenery rewards those who persist.", "At {age}, the day of your life is still young. You may have been through a lot already, but a long life still has plenty of time for you to keep going through.", "At {age}, there is plenty of morning left in your life. Keep chasing the views you want to see, and enjoy the road that gets you there."]}, {"a": 35, "b": 40, "p": "mid-morning", "n": 3, "s": ["At {age}, the sun in your life is climbing high. You have seen what the morning looks like; now keep walking toward what the rest of the day still holds.", "At {age}, it is mid-morning in your life, and the whole afternoon is still ahead. Keep your eyes open for views nobody has shown you yet.", "At {age}, you are well into the journey, and the day is not even half over. There is still plenty to chase, and you have the strength for it."]}, {"a": 40, "b": 50, "p": "late morning", "n": 1, "s": ["At {age}, it is late morning in your life, and the sun is almost at its highest. You have come a long way, and the brightest hours are still to come."]}, {"a": 50, "b": 60, "p": "high noon", "n": 1, "s": ["At {age}, it is high noon in your life, the brightest hour of the day. Everything you have done stands clear in the light. Be proud of it, and enjoy the view."]}, {"a": 60, "b": 72, "p": "afternoon", "n": 1, "s": ["At {age}, the afternoon light of your life is warm and golden. You have walked far and seen a lot. It is a good time to slow down and look around."]}, {"a": 72, "b": 85, "p": "evening", "n": 1, "s": ["At {age}, you are standing in the evening glow of your life, the most beautiful hour of the day. You have seen scenery others never have, and lived an experience that is yours alone."]}, {"a": 85, "b": 100, "p": "night", "n": 1, "s": ["At {age}, the day of your life is nearly done, and the sky is full of stars. You have seen what few people ever see, and all the light of your life is up there."]}];
+const stage=document.getElementById('stage');
+let SC=1;
+function fit(){SC=Math.min(innerWidth/1440,innerHeight/810);stage.style.transform=`translate(${-720*SC}px,${-405*SC}px) scale(${SC})`}
+addEventListener('resize',fit);fit();
+const pad=n=>String(n).padStart(2,'0');
+const hhmm=m=>pad(Math.floor(m/60))+':'+pad(Math.floor(m%60));
+const hm=m=>Math.floor(m/60)+':'+pad(Math.floor(m%60));
+
+/* shared clock for the Anticipated Clock nav row */
+/* shared clock: follows the Anticipated Clock, never resets it. The typed age lives only on this page. */
+let T0=null;try{T0=Number(sessionStorage.getItem('lc_t0'))||null}catch(e){}
+if(!T0){T0=Date.now();try{sessionStorage.setItem('lc_t0',String(T0))}catch(e){}}
+
+document.getElementById('nAt').addEventListener('click',()=>{location.href='index.html'});
+document.getElementById('nMy').addEventListener('click',()=>{location.href='my-clock.html'});
+
+const rLong=document.getElementById('rLong'),rShort=document.getElementById('rShort');
+const digits=document.getElementById('digits'),nYour=document.getElementById('nYour');
+const ageEl=document.getElementById('age'),errEl=document.getElementById('err');
+const periodEl=document.getElementById('period'),bodyEl=document.getElementById('body');
+
+let lastTickS=-1;
+let age=null, shortCur=0, lastPick=null, tStart=Date.now();
+
+function bandOf(a){for(const b of BANDS){if(a<b.b)return b}return BANDS[BANDS.length-1]}
+function show(a,animate){
+  age=a;
+  const m=a/100*1440, shown=Number(a.toFixed(2));
+  const b=bandOf(a);
+  let pool=b.s.map((s,i)=>i);
+  if(pool.length>1&&lastPick&&lastPick.band===b.a)pool=pool.filter(i=>i!==lastPick.i);
+  const i=pool[Math.floor(Math.random()*pool.length)];
+  lastPick={band:b.a,i};
+  const text=b.s[i].replace(/\{age\}/g,shown);
+  const per='It is the '+b.p+' of '+hm(m)+' in your life';
+  digits.textContent=hhmm(m);
+  nYour.textContent='-Your Clock: '+hhmm(m);
+  const els=[periodEl,bodyEl];
+  const put=()=>{periodEl.textContent=per;bodyEl.textContent=text;
+    if(animate)els.forEach(el=>el.animate([{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'none'}],{duration:480,easing:'ease-out',fill:'forwards'}));
+    else els.forEach(el=>el.style.opacity=1)};
+  if(animate&&periodEl.style.opacity!=='0'&&periodEl.textContent){
+    els.forEach(el=>el.animate([{opacity:1},{opacity:0}],{duration:160,fill:'forwards'}));setTimeout(put,170);
+  }else put();
+}
+let errT=null;
+function hint(msg){
+  errEl.textContent=msg;errEl.getAnimations().forEach(a=>a.cancel());
+  errEl.animate([{opacity:0,transform:'translateY(-6px)'},{opacity:1,transform:'none'}],{duration:300,fill:'forwards'});
+  clearTimeout(errT);errT=setTimeout(()=>errEl.animate([{opacity:1},{opacity:0}],{duration:400,fill:'forwards'}),3600);
+}
+function clearHint(){clearTimeout(errT);errEl.getAnimations().forEach(a=>a.cancel());errEl.style.opacity=0}
+function submit(){
+  const v=ageEl.value.trim();
+  if(!v){hint('Please type your age first.');return}
+  if(!/^\d+(\.\d+)?$/.test(v)){hint('Please type a number, like 19 or 29.5.');return}
+  const a=parseFloat(v);
+  if(a>100){hint('Your age should be between 0 and 100.');return}
+  clearHint();show(a,true);if(window.LCSound)LCSound.bell();
+}
+ageEl.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();submit()}});
+ageEl.addEventListener('input',()=>{if(errEl.style.opacity!=='0')clearHint()});
+stage.addEventListener('click',e=>{if(!e.target.closest('#nav'))ageEl.focus()});
+
+function frame(){
+  const now=Date.now();
+  const longAng=(((now-T0)/1000)%120)*3;          // same speed and phase as the Anticipated Clock: 3 deg/s, one turn per 120 s
+  rLong.setAttribute('transform',`rotate(${longAng.toFixed(2)})`);
+  const tgt=age===null?0:age/100*360;
+  const d=((tgt-shortCur+540)%360)-180;shortCur=(shortCur+d*0.07+360)%360;
+  rShort.setAttribute('transform',`rotate(${shortCur.toFixed(2)})`);
+  const tick=Math.floor((now-T0)/1000);
+  if(tick!==lastTickS){lastTickS=tick;if(window.LCSound)LCSound.tick(tick)}
+  if(age===null){const m=(tick%120)*12;digits.textContent=hhmm(m);nYour.textContent='-Your Clock: '+hhmm(m)}
+  document.getElementById('nAt').textContent='-The Anticipated Clock: '+hhmm((tick%120)*12);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+document.fonts.ready.then(()=>{ageEl.focus();[digits].forEach(el=>el.animate([{opacity:0,transform:'translateY(14px)'},{opacity:1,transform:'none'}],{duration:700,easing:'ease-out',fill:'backwards'}))});
+</script></body></html>

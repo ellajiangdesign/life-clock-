@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Anticipated Clock</title>
+<style>
+@font-face{font-family:"Mamamia";src:url(mamamia.ttf) format("truetype");font-display:block}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#fff;font-family:"Mamamia",cursive;color:#000}
+#stage{position:absolute;left:50%;top:50%;width:1440px;height:810px;transform-origin:0 0;overflow:hidden;background:#fff}
+#stage img{display:block;user-select:none;-webkit-user-drag:none}
+.abs{position:absolute}
+#bg{left:0;top:0;width:1440px;height:810px}
+#clock{position:absolute;inset:0;transition:opacity .45s ease,transform .6s ease;transform-origin:356px 452px}
+#clock.off{opacity:0;transform:scale(.94);pointer-events:none}
+.face{position:absolute;transform:translate(-50%,-50%);will-change:transform}
+.hand{position:absolute;will-change:transform}
+#hLong{transition:transform .22s cubic-bezier(.3,1.7,.5,1)}
+.txt{position:absolute;white-space:nowrap;line-height:1.2}
+#head{left:642px;top:92px;font-size:48px;color:#7e8d2f}
+#intro{left:643px;top:306px;font-size:27px;color:#000}
+#intro p+p{margin-top:32.4px}
+#pagename{left:358px;top:709px;font-size:48px;color:#ddd180}
+#digits{left:1194px;top:497px;font-size:120px;color:#d76858;letter-spacing:0}
+#nav{left:1153px;top:88px;font-size:18px;color:#fff}
+#nav div{position:absolute;left:0;white-space:nowrap;transform-origin:0 50%;transition:transform .2s ease;cursor:default}
+#nav div:hover{transform:scale(1.14)}
+#nav div.cur{color:#e8dc90}
+.fadeable{transition:opacity .35s ease,transform .35s ease}
+.hide{opacity:0;pointer-events:none}
+#detail{position:absolute;inset:0;pointer-events:none}
+#detail>*{position:absolute;opacity:0}
+.badge{white-space:nowrap;line-height:1;color:#000}
+#bAge{left:642px;top:74px;font-size:66px;padding:14px 34px 12px}
+#bTitle{left:700px;top:166px;font-size:50px;padding:12px 30px 10px}
+#dBody{left:643px;top:262px;width:700px;font-size:27px;line-height:32.4px;white-space:normal}
+.ctl{position:absolute;font-family:"Mamamia",cursive;font-size:24px;color:#000;background:none;border:0;cursor:pointer;display:flex;align-items:center;gap:10px;padding:4px 2px;pointer-events:auto;opacity:0}
+.ctl:hover span{text-decoration:underline;text-underline-offset:4px}
+.ctl svg{width:22px;height:22px;stroke:#000;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+#bPrev{left:640px;top:546px}
+#bNext{left:790px;top:546px}
+#bBack{left:36px;top:746px}
+.sticker{position:absolute;will-change:transform,opacity}
+#hint{position:absolute;left:0;top:0}
+</style></head>
+<body>
+<div id="stage">
+  <img id="bg" src="bg.webp" alt="">
+  <div id="clock">
+    <img id="alarm" class="abs" src="alarm.webp" alt="">
+    <div id="faces"></div>
+    <img id="hLong" class="hand" src="hand_long.png" alt="">
+    <img id="hShort" class="hand" src="hand_short.png" alt="">
+  </div>
+  <div id="stickers"></div>
+
+  <div id="head" class="txt fadeable">Life seems to run on an<br>invisible timetable.</div>
+  <div id="intro" class="txt fadeable">
+    <p>At zero, we expect a safe arrival; at ten, a happy childhood; at twenty,<br>success in our studies; at thirty, a place to belong; at forty, a thriving<br>career; at fifty, a settled home and family… Time is divided into neat<br>marks, and each age slowly takes on the shape it is supposed to have.</p>
+    <p>People always say there is a right thing to do at every age. But what if<br>life isn’t a clock that must run on time?</p>
+  </div>
+
+  <div id="detail">
+    <div id="bAge" class="badge"><span></span></div>
+    <div id="bTitle" class="badge"><span></span></div>
+    <div id="dBody" class="txt"></div>
+    <button id="bPrev" class="ctl"><svg viewBox="0 0 24 24"><path d="M12 20V5M5 11l7-7 7 7"/></svg><span></span></button>
+    <button id="bNext" class="ctl"><svg viewBox="0 0 24 24"><path d="M12 4v15M5 13l7 7 7-7"/></svg><span></span></button>
+    <button id="bBack" class="ctl"><svg viewBox="0 0 24 24"><path d="M20 12H5M11 5l-7 7 7 7"/></svg><span>Back</span></button>
+  </div>
+
+  <div id="pagename" class="txt">The Anticipated Clock</div>
+  <div id="digits" class="txt">00:00</div>
+  <div id="nav" class="txt">
+    <div id="nA" class="cur" style="top:0">-The Anticipated Clock: <span id="nAt">00:00</span></div>
+    <div id="nMyLink" style="top:43.2px;cursor:pointer">-My Clock: 04:33</div>
+    <div id="nYourLink" style="top:86.4px">-Your Clock: 00:00</div>
+  </div>
+</div>
+
+<script src="sound.js"></script>
+<script>
+const LAYOUT={"objs": [{"age": 0, "name": "Cradle", "cx": 351.9301310043668, "cy": 329.7117903930131, "face_w": 71.52401666378759, "face_h": 75.08122270742358, "st_w": 569.0, "st_h": 590.5, "obj_w": 430.0, "obj_h": 451.38580395943984, "ca": "#98beed", "cb": "#dfd281", "face_rot": 0, "ill_w": 83.42358078602619, "ill_h": 66.62735441223145}, {"age": 10, "name": "Teddy Bear", "cx": 444.9956331877729, "cy": 347.7379912663755, "face_w": 65.27161572052403, "face_h": 62.23943797311581, "st_w": 562.0, "st_h": 542.0, "obj_w": 430.0, "obj_h": 410.0244498777506, "ca": "#857e77", "cb": "#7f8d2f", "face_rot": 0, "ill_w": 72.52401746724891, "ill_h": 70.70608209606988}, {"age": 20, "name": "Graduation Cap", "cx": 502.84716157205236, "cy": 410.8296943231441, "face_w": 75.83580786026201, "face_h": 52.45989575996619, "st_w": 562.0, "st_h": 429.5, "obj_w": 430.00000000000006, "obj_h": 297.4551971326165, "ca": "#dfd281", "cb": "#788eb1", "face_rot": 0, "ill_w": 84.26200873362446, "ill_h": 70.52222214722974}, {"age": 30, "name": "Ring", "cx": 513.5371179039302, "cy": 488.5938864628821, "face_w": 43.537937376234446, "face_h": 59.98951965065502, "st_w": 518.0, "st_h": 655.0, "obj_w": 362.87952987267386, "obj_h": 500.0, "ca": "#97b4d6", "cb": "#7f8d2f", "face_rot": 0, "ill_w": 54.87595181145904, "ill_h": 66.65502183406113}, {"age": 40, "name": "Red Briefcase", "cx": 461.764192139738, "cy": 539.528384279476, "face_w": 69.04454148471615, "face_h": 45.129060431046625, "st_w": 562.0, "st_h": 413.0, "obj_w": 430.0, "obj_h": 281.0576414595452, "ca": "#a8bbd7", "cb": "#e8dc90", "face_rot": 0, "ill_w": 76.71615720524017, "ill_h": 67.70505302557703}, {"age": 50, "name": "Key", "cx": 382.53275109170306, "cy": 573.2751091703057, "face_w": 66.02620087336244, "face_h": 61.37646841749184, "st_w": 562.0, "st_h": 531.5, "obj_w": 430.0, "obj_h": 399.71830985915494, "ca": "#788eb1", "cb": "#e8dc90", "face_rot": 0, "ill_w": 56.73205184009885, "ill_h": 73.36244541484716}, {"age": 60, "name": "Suitcase", "cx": 304.9781659388646, "cy": 556.296943231441, "face_w": 42.495700206700484, "face_h": 79.23144104803494, "st_w": 421.0, "st_h": 653.0, "obj_w": 268.17447495961227, "obj_h": 499.99999999999994, "ca": "#e6c5a5", "cb": "#788eb1", "face_rot": 0, "ill_w": 59.799640380169535, "ill_h": 88.0349344978166}, {"age": 70, "name": "Table Lamp", "cx": 235.80786026200872, "cy": 530.5152838427947, "face_w": 53.32818821851885, "face_h": 82.62707423580785, "st_w": 477.5, "st_h": 655.0, "obj_w": 322.7040816326531, "obj_h": 500.0, "ca": "#98beed", "cb": "#857e77", "face_rot": 0, "ill_w": 59.85660741135083, "ill_h": 91.80786026200873}, {"age": 80, "name": "Walking Cane", "cx": 210.23580786026199, "cy": 461.764192139738, "face_w": 103.7882595373699, "face_h": 44.53487452371062, "st_w": 329.5, "st_h": 655.0, "obj_w": 174.45594006421692, "obj_h": 500.0, "ca": "#e8dc90", "cb": "#857e77", "face_rot": 0, "ill_w": 115.32028837485545, "ill_h": 49.81290562937543}, {"age": 90, "name": "Pill Box", "cx": 205.6244541484716, "cy": 411.03930131004364, "face_w": 68.28995633187773, "face_h": 59.49503771337833, "st_w": 562.0, "st_h": 506.5, "obj_w": 430.0, "obj_h": 374.6212121212121, "ca": "#c5c6c7", "cb": "#98beed", "face_rot": 0, "ill_w": 75.87772925764192, "ill_h": 67.33364610776282}, {"age": 100, "name": "Family Portrait", "cx": 262.2183406113537, "cy": 351.72052401746726, "face_w": 59.21465986009988, "face_h": 63.762445414847164, "st_w": 572.0, "st_h": 605.0, "obj_w": 430.0, "obj_h": 463.0247238295634, "ca": "#dfd281", "cb": "#97b4d6", "face_rot": 0, "ill_w": 70.8471615720524, "ill_h": 70.230205157782}], "hub": [350.46288209606985, 450.23580786026196], "face": [154.2707423580786, 294.28820960698687, 557.1353711790392, 609.5371179039302], "alarm": {"x": 87.19650655021833, "y": 87.61572052401746, "w": 544.1397379912663, "h": 616.6637554585152}, "hands": {"R": 125.76419213973799, "long_base": 272.03, "short_base": 27.53, "hub": [350.46288209606985, 450.23580786026196]}}, TEXTS={"0": "When she arrived in the world, she did not yet know what a life was. She only lay in a gently rocking cradle, listening to her parents speak softly, looking up into their loving eyes. She didn't need to do anything then, only to grow up safe. It seemed that from the moment she was born, she already carried the hopes of many people.", "10": "At ten, she had a favourite teddy bear. It slept beside her and listened to the little secrets nobody else had time to hear. To the grown-ups it was just an ordinary toy, but in her world it mattered more than most of what they taught her. People wanted her to be happy then. What she would become could wait.", "20": "At twenty, she put on a graduation cap and stood in a crowd for the photograph. Some called it a new beginning. Others had already started asking what she planned to do next. Youth seems to be handed so many possibilities, yet each one already has its standard answer. She had hardly come to know the world, and she was already being hurried toward the future.", "30": "At thirty, a ring appeared on her hand. People began to ask about her partner, about weddings and family, and about when she would have a small home of her own. It seemed that at this age, love should have a clear destination.", "40": "At forty, she walked through the morning rush with a red briefcase in her hand. Inside were documents, plans, and a great many things she hadn't had time to deal with. Work slowly became the centre of her life, and responsibility took on a real weight. People said this was the age to have achieved something. She was simply used to folding her tiredness away and heading for the next meeting.", "50": "At fifty, she finally held a key that was truly hers. It could open a door, and behind it were a familiar room, a lamp left on, and someone waiting for her to come back. When she was young, she always wanted to go farther. Now she felt that a place to come home to was an achievement in itself.", "60": "At sixty, she packed a suitcase and set out for the places she had always said she would visit one day. The days once filled with work and duty had finally left some room. People assumed life would slow down here, but she felt there was still so much scenery she hadn't seen, and so many questions without answers. Life, it turned out, isn't always a road you hurry along. You can also set out again.", "70": "At seventy, the nights grew long. She sat beside a table lamp, turning the pages of old photographs, now and then thinking of people she hadn't seen in a very long time. The world outside was as lively as ever, but she was no longer in a hurry to keep up. The light fell on more than the pages. It fell on the memories that time had slowly left behind.", "80": "At eighty, she began to carry a cane when she went out. Roads she once crossed without a thought now had to be measured step by step. Her body had started to remind her that time had left its mark. But she still loved to walk, to look at the trees along the path and at the sky that changed every day. She walked more slowly, and the world did not become any smaller for it.", "90": "At ninety, a pill box appeared beside her bed. Each day was divided into morning, noon and night, and every compartment held something to remember. When she was young, she thought days should be loud and grand. Later she found that eating on time, sleeping soundly, and waking to see familiar faces was already something to be grateful for.", "100": "At one hundred, she sat among a crowd of people and had a family portrait taken. In the photograph were familiar faces and new lives she had never met. Some had gone, and some had only just arrived, and she had become the longest stretch of time in the picture. People always wonder what a life leaves behind. Perhaps the answer isn't complicated."};
+const stage=document.getElementById('stage');
+let SC=1;
+function fit(){SC=Math.min(innerWidth/1440,innerHeight/810);stage.style.transform=`translate(${-720*SC}px,${-405*SC}px) scale(${SC})`}
+addEventListener('resize',fit);fit();
+
+/* ---------- placement ---------- */
+const al=document.getElementById('alarm');
+al.style.cssText=`left:${LAYOUT.alarm.x}px;top:${LAYOUT.alarm.y}px;width:${LAYOUT.alarm.w}px;height:${LAYOUT.alarm.h}px`;
+const HUB=LAYOUT.hub, HR=LAYOUT.hands.R;
+const hL=document.getElementById('hLong'), hS=document.getElementById('hShort');
+for(const h of [hL,hS]){h.style.left=(HUB[0]-HR)+'px';h.style.top=(HUB[1]-HR)+'px';h.style.width=h.style.height=(2*HR)+'px'}
+const facesEl=document.getElementById('faces');
+const objs=LAYOUT.objs.map((o,i)=>{
+  const el=document.createElement('img');el.className='face';el.src=`ill_${o.age}.webp`;
+  el.style.left=o.cx+'px';el.style.top=o.cy+'px';el.style.width=o.ill_w+'px';el.style.height=o.ill_h+'px';
+  facesEl.appendChild(el);
+  const pre=new Image();pre.src=`sticker_${o.age}.webp`;
+  return Object.assign({i,el,s:1,v:0,ts:1},o)});
+const N=objs.length;
+
+/* ---------- the two clocks ---------- */
+let T0=null;try{T0=Number(sessionStorage.getItem('lc_t0'))||null}catch(e){}
+if(!T0){T0=Date.now();try{sessionStorage.setItem('lc_t0',String(T0))}catch(e){}}
+document.getElementById('nMyLink').addEventListener('click',()=>{location.href='my-clock.html'});
+(function(){var el=document.getElementById('nYourLink');if(!el)return;
+ el.style.cursor='pointer';
+ var p=function(n){return String(n).padStart(2,'0')};
+ function upd(){var t=Math.floor((Date.now()-T0)/1000),m=(t%120)*12;el.textContent='-Your Clock: '+p(Math.floor(m/60))+':'+p(Math.floor(m%60))}
+ upd();setInterval(upd,200);
+ el.addEventListener('click',function(){location.href='your-clock.html'});
+})();
+
+const digits=document.getElementById('digits'), nAt=document.getElementById('nAt');
+let lastTick=-1;
+function pad(n){return String(n).padStart(2,'0')}
+function tickUpdate(){
+  const tick=Math.floor((Date.now()-T0)/1000);
+  if(tick===lastTick)return;lastTick=tick;if(window.LCSound)LCSound.tick(tick);
+  const ang=tick*3;                         // 3 degrees per second -> one turn in 2 minutes
+  hL.style.transform=`rotate(${ang-LAYOUT.hands.long_base}deg)`;
+  const mins=(tick%120)*12;                 // a full turn = 24 hours = 100 years
+  const s=pad(Math.floor(mins/60))+':'+pad(mins%60);
+  digits.textContent=s;nAt.textContent=s;
+}
+setInterval(tickUpdate,100);tickUpdate();
+
+/* ---------- pointer ---------- */
+const HOV=1.9;
+let px=-999,py=-999,hovered=-1,openIdx=-1,busy=false;
+let shortAng=LAYOUT.hands.short_base, shortTarget=shortAng;
+addEventListener('pointermove',e=>{
+  const r=stage.getBoundingClientRect();px=(e.clientX-r.left)/SC;py=(e.clientY-r.top)/SC;
+  shortTarget=(Math.atan2(px-HUB[0],-(py-HUB[1]))*180/Math.PI+360)%360;
+});
+function frame(){
+  // mouse hand: shortest-arc follow
+  let d=((shortTarget-shortAng+540)%360)-180;shortAng+=d*0.16;
+  hS.style.transform=`rotate(${shortAng-LAYOUT.hands.short_base}deg)`;
+  // hover
+  if(openIdx<0){
+    let best=-1,bd=1e9;
+    objs.forEach(o=>{const r0=Math.max(o.ill_w,o.ill_h)/2;const dd=Math.hypot(px-o.cx,py-o.cy);
+      const lim=r0*Math.max(1.1,o.s*0.62);if(dd<lim&&dd<bd){bd=dd;best=o.i}});
+    hovered=best;
+  }else hovered=-1;
+  objs.forEach(o=>{
+    let t=1;
+    if(hovered>=0){
+      if(o.i===hovered)t=HOV;
+      else{const dd=Math.min((o.i-hovered+N)%N,(hovered-o.i+N)%N);t=dd===1?1.2:dd===2?1.08:dd===3?1.02:1}
+    }
+    o.v+=(t-o.s)*0.075;o.v*=0.82;o.s+=o.v;
+    o.el.style.transform=`translate(-50%,-50%) scale(${o.s.toFixed(3)})`;
+    o.el.style.zIndex=Math.round(10+o.s*10);
+  });
+  stage.style.cursor=hovered>=0?'pointer':'default';
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* ---------- detail view ---------- */
+const CX=356, CY=376;
+const stickersEl=document.getElementById('stickers');
+const head=document.getElementById('head'), intro=document.getElementById('intro'), clockEl=document.getElementById('clock');
+const bAge=document.getElementById('bAge'), bTitle=document.getElementById('bTitle'), dBody=document.getElementById('dBody');
+const bPrev=document.getElementById('bPrev'), bNext=document.getElementById('bNext'), bBack=document.getElementById('bBack');
+function jag(el,seed){
+  let s=seed;const rnd=()=>{s=(s*9301+49297)%233280;return s/233280};
+  const w=el.offsetWidth,h=el.offsetHeight;const pts=[];const j=7;
+  const along=(x0,y0,x1,y1,n)=>{for(let i=0;i<n;i++){const t=i/n;pts.push([x0+(x1-x0)*t+(rnd()-.5)*j,y0+(y1-y0)*t+(rnd()-.5)*j])}};
+  along(rnd()*5,rnd()*5,w-rnd()*5,rnd()*5,6);along(w-rnd()*5,rnd()*5,w-rnd()*5,h-rnd()*5,3);
+  along(w-rnd()*5,h-rnd()*5,rnd()*5,h-rnd()*5,6);along(rnd()*5,h-rnd()*5,rnd()*5,rnd()*5,3);
+  el.style.clipPath='polygon('+pts.map(p=>p[0].toFixed(1)+'px '+p[1].toFixed(1)+'px').join(',')+')';
+}
+function fillDetail(o){
+  bAge.querySelector('span').textContent='Age '+o.age;bAge.style.background=o.ca;
+  bTitle.querySelector('span').textContent=o.name;bTitle.style.background=o.cb;
+  dBody.textContent=TEXTS[o.age];
+  dBody.style.top='262px';const bh=dBody.offsetHeight;dBody.style.top=Math.round(Math.max(286,Math.min(330,286+(190-bh)*0.5+ (bh<190?20:0))))+'px';
+  jag(bAge,o.age+3);jag(bTitle,o.age+11);
+  bAge.style.transform='rotate(-2deg)';bTitle.style.transform='rotate(1.4deg)';
+  const p=objs[o.i-1],n=objs[o.i+1];
+  bPrev.style.display=p?'flex':'none';bNext.style.display=n?'flex':'none';
+  if(p)bPrev.querySelector('span').textContent='Prev · '+p.age;
+  if(n)bNext.querySelector('span').textContent='Next · '+n.age;
+}
+const showDetail=(on,delay=0)=>{
+  const els=[bAge,bTitle,dBody,bPrev,bNext,bBack];
+  els.forEach(el=>{
+    const base=el.style.transform&&el.classList.contains('badge')?el.style.transform:'';
+    el.animate([{opacity:on?0:1,transform:(base+' translateY('+(on?14:0)+'px)').trim()},{opacity:on?1:0,transform:(base+' translateY('+(on?0:14)+'px)').trim()}],
+      {duration:on?520:260,delay,easing:'ease-out',fill:'forwards'});
+  });
+  document.getElementById('detail').style.pointerEvents=on?'auto':'none';
+};
+function mkSticker(o){
+  const im=new Image();im.className='sticker';im.src=`sticker_${o.age}.webp`;
+  im.style.cssText=`left:${CX-o.st_w/2}px;top:${CY-o.st_h/2}px;width:${o.st_w}px;height:${o.st_h}px`;
+  stickersEl.appendChild(im);return im;
+}
+function fromFace(o){
+  const s0=(HOV*Math.max(o.ill_w,o.ill_h))/Math.max(o.obj_w,o.obj_h);
+  const rot=0;
+  return `translate(${o.cx-CX}px,${o.cy-CY}px) scale(${s0}) rotate(${rot}deg)`;
+}
+function openObj(o){
+  if(busy)return;busy=true;openIdx=o.i;if(window.LCSound)LCSound.page();
+  clockEl.classList.add('off');
+  head.classList.add('hide');intro.classList.add('hide');
+  const im=mkSticker(o);o.sticker=im;
+  fillDetail(o);
+  im.animate([{transform:fromFace(o),opacity:0},{transform:'none',opacity:1}],{duration:700,easing:'cubic-bezier(.2,.9,.25,1.12)',fill:'forwards'});
+  showDetail(true,180);
+  setTimeout(()=>busy=false,720);
+}
+function closeObj(){
+  if(busy||openIdx<0)return;busy=true;if(window.LCSound)LCSound.key();const o=objs[openIdx];
+  const im=o.sticker;
+  im.animate([{transform:'none',opacity:1},{transform:fromFace(o),opacity:0}],{duration:520,easing:'cubic-bezier(.5,0,.3,1)',fill:'forwards'}).onfinish=()=>{im.remove();o.sticker=null};
+  showDetail(false);
+  setTimeout(()=>{openIdx=-1;clockEl.classList.remove('off');head.classList.remove('hide');intro.classList.remove('hide');busy=false},300);
+}
+function goto(j){
+  if(busy||openIdx<0||j<0||j>=N)return;busy=true;if(window.LCSound)LCSound.key();
+  const from=objs[openIdx],to=objs[j];const dir=j>openIdx?1:-1;
+  const im=from.sticker;
+  im.animate([{transform:'none',opacity:1},{transform:`translateY(${-70*dir}px) scale(.92)`,opacity:0}],{duration:320,easing:'ease-in',fill:'forwards'}).onfinish=()=>{im.remove();from.sticker=null};
+  showDetail(false);
+  setTimeout(()=>{
+    openIdx=j;fillDetail(to);
+    const n=mkSticker(to);to.sticker=n;
+    n.animate([{transform:`translateY(${70*dir}px) scale(.92)`,opacity:0},{transform:'none',opacity:1}],{duration:560,easing:'cubic-bezier(.2,.9,.25,1.1)',fill:'forwards'});
+    showDetail(true);
+    setTimeout(()=>busy=false,580);
+  },300);
+}
+stage.addEventListener('click',e=>{
+  if(openIdx<0&&hovered>=0&&!e.target.closest('#nav'))openObj(objs[hovered]);
+});
+bBack.addEventListener('click',closeObj);
+bPrev.addEventListener('click',()=>goto(openIdx-1));
+bNext.addEventListener('click',()=>goto(openIdx+1));
+addEventListener('keydown',e=>{
+  if(e.key==='Escape')closeObj();
+  else if(e.key==='ArrowDown'||e.key==='ArrowRight')goto(openIdx+1);
+  else if(e.key==='ArrowUp'||e.key==='ArrowLeft')goto(openIdx-1);
+});
+/* entrance: all text together */
+document.fonts.ready.then(()=>{
+  [head,intro].forEach(el=>el.animate([{opacity:0,transform:'translateY(16px)'},{opacity:1,transform:'none'}],{duration:800,easing:'ease-out',fill:'backwards'}));
+});
+</script>
+</body></html>
